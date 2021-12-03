@@ -26,7 +26,7 @@ namespace ZhanKuImgDownLoadProject
             }
 
             var fileName = Guid.NewGuid();
-            await using var fs = new FileStream(@$"{path}\{fileName}", FileMode.CreateNew, FileAccess.Write);
+            await using var fs = new FileStream(@$"{path}\{fileName}.jpg", FileMode.CreateNew, FileAccess.Write);
             await picture.CopyToAsync(fs);
             Console.WriteLine($"{title}-{picUrl} complete...");
         }
