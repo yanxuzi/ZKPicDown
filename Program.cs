@@ -15,7 +15,7 @@ namespace ZhanKuImgDownLoadProject
             // 主页
             var hrefs = Utils.GetHref();
             // 详情页
-            var result = Utils.GetImgSrc(hrefs);
+            var result = Utils.GetImgSrc(await hrefs);
             // 主页 -> 详情页
             foreach (Dictionary<string, List<string>> dictionary in result)
             {

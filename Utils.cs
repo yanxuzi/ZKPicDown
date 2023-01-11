@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AgileHttp;
+using Flurl.Http;
 using HtmlAgilityPack;
 
 namespace ZhanKuImgDownLoadProject
@@ -12,11 +13,13 @@ namespace ZhanKuImgDownLoadProject
     {
         public static async Task CopyToLocalAsync(string picUrl, string title)
         {
-            var picture = (await picUrl.AsHttpClient().GetAsync())
-                .Response
-                .GetResponseStream();
+            // var picture = (await picUrl.AsHttpClient().GetAsync())
+            //     .Response
+            //     .GetResponseStream();
 
-            const string basePath = @"E:\站酷图片\";
+            var picture = await picUrl.GetStreamAsync();
+
+            var basePath = Path.Combine(Environment.CurrentDirectory, "壁纸");
 
             var path = Path.Combine(basePath, title.Replace("|", ""));
 
@@ -77,23 +80,38 @@ namespace ZhanKuImgDownLoadProject
         /// 外层链接
         /// </summary>
         /// <returns></returns>
-        public static List<string> GetHref()
+        public static async Task<List<string>> GetHref()
         {
             const string url = "https://www.zcool.com.cn/collection/ZMzc2MzczNDg=";
 
-            var html = url.AsHttpClient()
-                .Get()
-                .GetResponseContent();
+            var html = await url
+                .WithHeader("referer", "https://www.zcool.com.cn/collection/ZMzc2MzczNDg=")
+                .WithHeader("user-agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36")
+                .GetStringAsync();
+
 
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(html);
+
             HtmlNodeCollection htmlNodeCollection =
                 htmlDocument.DocumentNode.SelectNodes(
-                    "//div[@class='left p-relative js-item']/div[1]/div[@class='card-img']");
+                    "//div[@class='sc-16jldha-0 gACMOV']/div[1]");
 
-            return htmlNodeCollection.Select(htmlNode =>
-                    htmlNode.SelectSingleNode(".//a").Attributes["href"].Value)
+            var cardImg = htmlNodeCollection
+                .Select(x => x.SelectNodes("//div[@class='cardImg']"))
                 .ToList();
+
+            var cardImgData = new List<string>();
+            foreach (HtmlNodeCollection nodeCollection in cardImg)
+            {
+                var result = nodeCollection.Select(htmlNode =>
+                        htmlNode.SelectSingleNode(".//a").Attributes["href"].Value)
+                    .ToList();
+                cardImgData.AddRange(result);
+            }
+
+            return cardImgData;
         }
     }
 }
